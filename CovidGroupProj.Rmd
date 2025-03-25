@@ -39,6 +39,14 @@ library(readr)
 library(geosphere)
 ```
 
+```{r Data setup, include = FALSE}
+#time_series_covid19_deaths_global.csv
+deaths_global <- as.data.frame(read.csv("https://raw.githubusercontent.com/Figgs0bit/CSIT165-CovidGroupProj/refs/heads/main/time_series_covid19_deaths_global.csv"))
+
+#time_series_covid19_recovered_global.csv
+recovered_global <- as.data.frame(read.csv("https://raw.githubusercontent.com/Figgs0bit/CSIT165-CovidGroupProj/refs/heads/main/time_series_covid19_recovered_global.csv"))
+```
+
 ## Background
 The World Health Organization has recently employed a new data science initiative, *CSIT-165*, that uses data science to characterize pandemic diseases. 
 *CSIT-165* disseminates data driven analyses to global decision makers.
