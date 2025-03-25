@@ -1,6 +1,6 @@
 ---
-title: "Project 1"
-author: "Name:  \n Partner: "
+title: "Group Project: Covid Origins"
+author: "Name: Sal Figueroa  \n Partner: Kylie Stearns"
 date: "`r Sys.Date()`"
 output: 
   pdf_document:
@@ -40,6 +40,9 @@ library(geosphere)
 ```
 
 ```{r Data setup, include = FALSE}
+
+
+
 #time_series_covid19_deaths_global.csv
 deaths_global <- as.data.frame(read.csv("https://raw.githubusercontent.com/Figgs0bit/CSIT165-CovidGroupProj/refs/heads/main/time_series_covid19_deaths_global.csv"))
 
@@ -66,8 +69,38 @@ Date fields are stored in MM/DD/YYYY format.
 ## Project Objectives
 
 ### Objective 1
-```{r ob1}
+*Predict where the origin started based on the area with the greatest number of confirmations and deaths on the first recorded day in the data set. Show this is the origin using an if statement.*
 
+```{r ob1}
+#find max value in column (10.22.20)
+#check to see how many max location there is
+#run conditional loop 
+max_value <- 0
+RowMax <- 0
+
+for(i in 1:nrow(deaths_global))
+{
+num <- deaths_global[i,5]
+  
+  if (num > max_value)
+    {
+    max_value <- num
+    RowMax <- i
+    }
+    
+#province.state
+Acol <- deaths_global[RowMax,1]
+#county.region
+Bcol <- deaths_global[RowMax,2]
+#latitude
+Ccol <- deaths_global[RowMax,3]
+#longitude
+Dcol <- deaths_global[RowMax,4]
+#deaths on x1.22.20 (date)
+DeathVal <- deaths_global[RowMax,5]
+} 
+
+cat(Acol,", ", Bcol,", ", Ccol,", ", Dcol,", ", DeathVal, "\n")
 ```
 
 ### Objective 2
