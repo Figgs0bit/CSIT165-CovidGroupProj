@@ -73,7 +73,7 @@ Date fields are stored in MM/DD/YYYY format.
 *Predict where the origin started based on the area with the greatest number of confirmations and deaths on the first recorded day in the data set. Show this is the origin using an if statement.*
 
 ```{r ob1}
-#find max value in column (10.22.20)
+#find max value in column 5 (10.22.20)
 #check to see how many max location there is
 #run conditional loop 
 max_value <- 0
@@ -83,24 +83,18 @@ for(i in 1:nrow(deaths_global))
 {
 num <- deaths_global[i,5]
   
-  if (num > max_value)
+  if (num >= max_value)
     {
     max_value <- num
     RowMax <- i
     }
-    
-#province.state
-Acol <- deaths_global[RowMax,1]
-#county.region
-Bcol <- deaths_global[RowMax,2]
-#latitude
-Ccol <- deaths_global[RowMax,3]
-#longitude
-Dcol <- deaths_global[RowMax,4]
+}
+
 #deaths on x1.22.20 (date)
 DeathVal <- deaths_global[RowMax,5]
-}
-cat("Death: ",DeathVal,"\n")
+cat("Province/State: ",deaths_global[RowMax,1],"Province/State: ",deaths_global[RowMax,2],"\n")
+cat("Latitude: ",deaths_global[RowMax,3]," ,Longitude:",deaths_global[RowMax,4],"\n")
+cat("Predicted area of Origin had the most initial deaths (01.22.2020) at:",deaths_global[RowMax,5],"\n")
 ```
 
 ### Objective 2
