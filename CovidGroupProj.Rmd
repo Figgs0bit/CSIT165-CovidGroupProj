@@ -79,11 +79,11 @@ Date fields are stored in MM/DD/YYYY format.
 max_value <- 0
 RowMax <- 0
 
-for(i in 1:nrow(deaths_global))
+for(i in 1:nrow(deaths_global[,]))
 {
 num <- deaths_global[i,5]
   
-  if (num >= max_value)
+  if (num > max_value)
     {
     max_value <- num
     RowMax <- i
@@ -92,8 +92,8 @@ num <- deaths_global[i,5]
 
 #deaths on x1.22.20 (date)
 DeathVal <- deaths_global[RowMax,5]
-cat("Province/State: ",deaths_global[RowMax,1],"Province/State: ",deaths_global[RowMax,2],"\n")
-cat("Latitude: ",deaths_global[RowMax,3]," ,Longitude:",deaths_global[RowMax,4],"\n")
+cat("Province/State:",deaths_global[RowMax,1],"Province/State:",deaths_global[RowMax,2],"\n")
+cat("Latitude:",deaths_global[RowMax,3],",Longitude:",deaths_global[RowMax,4],"\n")
 cat("Predicted area of Origin had the most initial deaths (01.22.2020) at:",deaths_global[RowMax,5],"\n")
 ```
 
@@ -101,8 +101,37 @@ cat("Predicted area of Origin had the most initial deaths (01.22.2020) at:",deat
 *Where is the most recent area to have a first confirmed case? To do this, you will need to use a for loop, if statement, and subsets.*
 
 ```{r ob2}
+#find max value in column 5 (10.22.20)
+#check to see how many max location there is
+#run conditional loop 
+max_value <- 0
+RowMax <- 0
+num <- 0
+i <- 5
+j <- 1
+
+while(j < 331484 && num == 0) #while(num == 0 && j < 290)
+ {
+  num <- confirmed_global[j,i]
+#  cat("INSIDE WHILE: j:",j,"i:",i,"\n")
+  
+  j <- j + 1  #Iterate through rows 1-289 
+
+     if( j %% 289 == 0)
+      {
+      i <- i + 1 #Iterate through columns 1-1147
+#      cat("INSIDE IF - Col: ",j,"Row",i,"\n")
+      }  
+}
+
+j <- j - 1 # 
+
+cat("Province/State: ",confirmed_global[j,1],"Province/State: ",confirmed_global[j,2],"\n")
+cat("Latitude: ",confirmed_global[j,3]," ,Longitude:",confirmed_global[j,4],"\n")
+cat("Predicted area of Origin had the most initial deaths (01.22.2020) at:",confirmed_global[j,i],"\n")
 
 ```
+
 
 ### Objective 3
 *How far away are the areas from objective 2 from where the first confirmed case(s) occurred? Please provide answer(s) in terms of miles. Use the function distm from the R package geosphere to calculate the distance between two coordinates in meters (geosphere::distm). You will need to convert the value returned by distm from meters to miles (this conversion is simple and can be found online). Please use a table or printed statement to describe what Province/State and Country/Region first confirmed cases occurred as well as the distance (in miles) away from the origin. Please print the following: {recent region} is {distance in miles} away from {origin city, origin country}.*
