@@ -104,35 +104,35 @@ cat("Predicted area of Origin had the most initial deaths and confirmed cases (0
 *Where is the most recent area to have a first confirmed case? To do this, you will need to use a for loop, if statement, and subsets.*
 
 ```{r ob2}
-#find max value in column 5 (10.22.20)
-#check to see how many max location there is
-#run conditional loop 
-max_value <- 0
-RowMax <- 0
-num <- 0
-i <- 5
-j <- 1
+#find max value in column 5 (10.22.20) and check to see how many max location there is
 
-while(j < 331484 && num == 0) #while(num == 0 && j < 290)
+RowMax <- nrow(confirmed_global[,]) #Qty of columns
+ColMax <- ncol(confirmed_global[,]) #QTy of Rows
+max_value <- as.numeric(ncol(confirmed_global[,]) * nrow(confirmed_global[,])) #serves as while loop limit
+num <- 0 #Holds the rotating confirmed_cases value in loop
+
+ColName <- names(confirmed_global) #Loads the the column names into a vector
+
+#initiates the loop counter and used for pulling data from data frame.
+i <- 5 #Start the loop at column 5
+j <- 1 #Start the loop at column 1 instead of zero, adjust later
+
+#The while loop stops running when the num variable loads a value > 0  
+while(j < max_value && num == 0)
  {
   num <- confirmed_global[j,i]
-#  cat("INSIDE WHILE: j:",j,"i:",i,"\n")
-  
-  j <- j + 1  #Iterate through rows 1-289 
-
-     if( j %% 289 == 0)
-      {
+     if( j %% RowMax == 0) #This conditional statement allows the while loop to irritate-
+      {                    #through the each column before looping to next col.
       i <- i + 1 #Iterate through columns 1-1147
-#      cat("INSIDE IF - Col: ",j,"Row",i,"\n")
       }  
+   j <- j + 1  #Iterate through rows 1-289 
  }
 
-j <- j - 1 # 
+j <- j - 1 #This accounts for the final counter increment when exiting the while loop. 
 
 cat("Province/State: ",confirmed_global[j,1],"Province/State: ",confirmed_global[j,2],"\n")
 cat("Latitude: ",confirmed_global[j,3]," ,Longitude:",confirmed_global[j,4],"\n")
-cat("Predicted area of Origin had the most initial deaths (01.22.2020) at:",confirmed_global[j,i],"\n")
-
+cat("Predicted area of Origin had the most initial deaths on", ColName[i] ,"at:",confirmed_global[j,i],"\n")
 ```
 
 
@@ -140,7 +140,26 @@ cat("Predicted area of Origin had the most initial deaths (01.22.2020) at:",conf
 *How far away are the areas from objective 2 from where the first confirmed case(s) occurred? Please provide answer(s) in terms of miles. Use the function distm from the R package geosphere to calculate the distance between two coordinates in meters (geosphere::distm). You will need to convert the value returned by distm from meters to miles (this conversion is simple and can be found online). Please use a table or printed statement to describe what Province/State and Country/Region first confirmed cases occurred as well as the distance (in miles) away from the origin. Please print the following: {recent region} is {distance in miles} away from {origin city, origin country}.*
 
 ```{r ob3}
+#Ccol,Dcol,CcolCG,DcolCG
+cat(Ccol,",",Dcol,",",CcolCG,",",DcolCG, "\n")
+#mutate(Distance = distHaversine(distHaversine(c(Ccol,Dcol), c(CcolCG,DcolCG))))
 
+
+Lieu1 <- c(Dcol,Ccol) 
+Lieu2 <- c(DcolCG,CcolCG)
+
+Lieu1 <- as.numeric(Lieu1)
+Lieu2 <- as.numeric(Lieu2)
+
+library(geosphere)
+cat((distVincentyEllipsoid(Lieu1,Lieu2)),"- meters\n" )
+cat((distVincentyEllipsoid(Lieu1,Lieu2)/1000),"- Kilometers\n" )
+
+#1 mile = 1609.34 meters
+cat((distVincentyEllipsoid(Lieu1,Lieu2)/1609.34),"- miles\n" )
+
+#check - The distance between [30.9756, 112.2707] and [40, -100] is: 11,473.1 km or 7,129.0 miles
+# Hubei ,China to Lincoln ,Nebraska
 ```
 
 ### Objective 4
