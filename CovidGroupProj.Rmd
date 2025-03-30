@@ -7,6 +7,7 @@ output:
     toc: true
     toc_depth: 3
 header-includes:
+#These packages are not necessary to complete the assignment and or only used to provide an example. 
   - \usepackage{booktabs}
   - \usepackage{longtable}
   - \usepackage{array}
@@ -15,34 +16,36 @@ header-includes:
   - \usepackage{float}
   - \usepackage{colortbl}
   - \usepackage{pdflscape}
-#  - \usepackage{tabu}
+#  - \usepackage{tabu}  #when tabu package enabled PDF won't knit
   - \usepackage{threeparttable}
   - \usepackage{threeparttablex}
   - \usepackage[normalem]{ulem}
   - \usepackage{makecell}
   - \usepackage{xcolor}
 ---
-```{r setup, include = FALSE}
 
-#### Load necessary packages ####
-# * These packages are not necessary to complete the assignment and or only used 
-#   to provide an example. 
+```{r setup, include = FALSE}
+#### Load necessary library ####
 packages <- c("knitr", "kableExtra", "magrittr", "readr", "geosphere")
 
 install_me <- packages[!(packages %in% installed.packages()[, "Package"])]
 if (length(install_me)) install.packages(install_me)
 
 library(knitr)
-#library(kableExtra)
+#library(kableExtra) #when kablextra library enabled PDF won't knit
 library(magrittr)
 library(readr)
 library(geosphere)
 ```
 
 ```{r Data setup, include = FALSE}
-#Temp load line from local drive
+#data linked to github repository (https://github.com/CSSEGISandData/COVID-19/tree/master/csse_covid_19_data/csse_covid_19_time_series).
+
+#Temp Delete load line from local drive
+#confirmed_global <- read.csv("X:\\OneDrive\\CSIT165_RProgramming\\_MasterRepos\\COVID-19\\csse_covid_19_data\\csse_covid_19_time_series\\time_series_covid19_confirmed_global.csv")
+
 #time_series_covid19_confirmed_global.csv
-confirmed_global <- read.csv("X:\\OneDrive\\CSIT165_RProgramming\\_MasterRepos\\COVID-19\\csse_covid_19_data\\csse_covid_19_time_series\\time_series_covid19_confirmed_global.csv")
+confirmed_global <- as.data.frame(read.csv("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/refs/heads/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv"))
 
 #time_series_covid19_deaths_global.csv
 deaths_global <- as.data.frame(read.csv("https://raw.githubusercontent.com/Figgs0bit/CSIT165-CovidGroupProj/refs/heads/main/time_series_covid19_deaths_global.csv"))
@@ -61,7 +64,7 @@ Your and your partner's role is to play a data scientist from one of these two e
 ## Data
 > [2019 Novel Coronavirus COVID-19 (2019-nCoV) Data Repository by John Hopkins CSSE](https://github.com/CSSEGISandData/COVID-19/tree/master/csse_covid_19_data/csse_covid_19_time_series)
 
-Data for 2019 Novel Coronavirus is operated by the John Hopkins University Center for Systems Science and Engineering (JHU CSSE).
+Data for 2019 Novel Corona virus is operated by the John Hopkins University Center for Systems Science and Engineering (JHU CSSE).
 Data includes daily time series CSV summary tables, including confirmations, recoveries, and deaths. 
 Country/region are countries/regions hat conform to World Health Organization (WHO).
 Lat and Long refer to coordinates references for the user. 
@@ -73,28 +76,28 @@ Date fields are stored in MM/DD/YYYY format.
 *Predict where the origin started based on the area with the greatest number of confirmations and deaths on the first recorded day in the data set. Show this is the origin using an if statement.*
 
 ```{r ob1}
-#find max value in column 5 (10.22.20)
-#check to see how many max location there is
-#run conditional loop 
-max_value <- 0
-RowMax <- 0
+#Most deaths and confirmed cases on x1.22.20 (date)
+#find max value in column 5 (10.22.20) and check to see how many common max values there is.
+max_value <- 0 #holds the updated max_value
+RowMax <- 0 #this holds row (i) position in Data frame
 
+#For loop starting it column 5 to final column using nrow().
 for(i in 1:nrow(deaths_global[,]))
 {
-num <- deaths_global[i,5]
+num <- deaths_global[i,5] + confirmed_global[i,5]#Holds value to be tested against the current max value.
   
-  if (num > max_value)
+  if (num > max_value) #confitional if loop that updates the max value as iterates through column 5.
     {
     max_value <- num
-    RowMax <- i
+    RowMax <- i #Holds the row position where the max value is located
     }
 }
 
-#deaths on x1.22.20 (date)
-DeathVal <- deaths_global[RowMax,5]
+deathNconfimred <- deaths_global[RowMax,5] + confirmed_global[RowMax,5]
 cat("Province/State:",deaths_global[RowMax,1],"Province/State:",deaths_global[RowMax,2],"\n")
 cat("Latitude:",deaths_global[RowMax,3],",Longitude:",deaths_global[RowMax,4],"\n")
-cat("Predicted area of Origin had the most initial deaths (01.22.2020) at:",deaths_global[RowMax,5],"\n")
+cat("Deaths:",deaths_global[RowMax,5],",confirmed cases:",confirmed_global[RowMax,5],"\n")
+cat("Predicted area of Origin had the most initial deaths and confirmed cases (01.22.2020) at:",deathNconfimred,"\n")
 ```
 
 ### Objective 2
@@ -122,7 +125,7 @@ while(j < 331484 && num == 0) #while(num == 0 && j < 290)
       i <- i + 1 #Iterate through columns 1-1147
 #      cat("INSIDE IF - Col: ",j,"Row",i,"\n")
       }  
-}
+ }
 
 j <- j - 1 # 
 
@@ -147,15 +150,143 @@ cat("Predicted area of Origin had the most initial deaths (01.22.2020) at:",conf
 
 #### Objective 4.1
 ```{r ob4.1}
+# removes NA values
+deaths_global[is.na(deaths_global)] <- 0
+confirmed_global[is.na(confirmed_global)] <- 0
+#1147 number of columns
+iCntLength <- ncol(deaths_global)
+#289 number of rows
+jCntLength <- nrow(deaths_global)
+#loop counter default
+i <- 5
+j <- 1
+
+SUMdeaths_global <- 0
+SUMconfirmed_global <- 0
+sumRiskScore  <- 0
+
+#Find higest and lowest Risk score        
+low_value <- 1 #holds the lowest risk score value.
+iLow <- 1 #Holds data frame coordinates for low
+jLow <- 1
+high_value <- 0 #holds the highest risk score value.
+iHi <- 1 #Holds data frame coordinates for hi
+jHi <- 1
+
+
+for(j in 1:jCntLength) #Iterate through rows 1-289 
+  {
+  for(i in 5:iCntLength) #Iterate through columns 1-1147
+    {
+      emptyClr <- (deaths_global[j,3] + deaths_global[j,4]) #deaths_global[row, col]
+
+      if(emptyClr > 0 && confirmed_global[j,i] != 0) #Filters out the first 4 Columns of empty cells in province.state 
+        {
+#Global riskscore
+        SUMdeaths_global <- SUMdeaths_global + deaths_global[j,i]  
+        SUMconfirmed_global <- SUMconfirmed_global + confirmed_global[j,i]
+
+          riskScore <- (deaths_global[j,1147]/confirmed_global[j, 1147])*100
+          #cat(riskScore, "\n")
+#Country with lowest riskscore (if more than one, display the one with the most confirmations)
+          if (riskScore > high_value) #if (riskScore > high_value && i == iCntLength)
+            {
+            high_value <- riskScore
+            jHi <- j
+             cat("High - Risk score:",riskScore, ",Row/Col:", jHi,",1147\n")
+             cat("Deaths:",deaths_global[j,1147]," ,Confirmed:", confirmed_global[j, 1147],"\n")
+            }
+#Country with lowest riskscore (if more than one, display the one with the most confirmations)
+          if (riskScore < low_value)
+            {
+            low_value <- riskScore
+            jLow <- j
+            cat("Low - Risk score:",riskScore, ",Row/Col:",jLow,",1147\n")
+            cat("Deaths:",deaths_global[j,1147]," ,Confirmed:", confirmed_global[j, 1147],"\n")
+            }      
+        }
+    }
+  }
+print("----------CHECK DATA ABOVE---------")          
+sumRiskScore <- (SUMdeaths_global/SUMconfirmed_global)*100
+cat("\nAverage Risk Score:",sumRiskScore, "\n\n")
+
+cat("Highest current Risk Score:", high_value,"\n")
+cat("Row positions: ",jHi,",Column Position:", 1147,"\n")
+cat("Deaths",deaths_global[jHi,1147],"/confirmed",confirmed_global[jHi,1147],"\n")
+cat("Province/State:", deaths_global[jHi, 1],",Country/Region:", deaths_global[jHi, 2],"\n")
+cat("Lat.", deaths_global[jHi, 3],",Long.", deaths_global[jHi, 4],"\n\n")
+
+cat("Lowest current Risk Score:", low_value,"\n")
+cat("Row positions: ",jLow,",Column Position:", 1147,"\n")
+cat("Deaths",deaths_global[jLow,1147],"/confirmed",confirmed_global[jLow,1147],"\n")
+cat("Province/State:", deaths_global[jLow, 1],",Country/Region:", deaths_global[jLow, 2],"\n")
+cat("Lat.", deaths_global[jLow, 3],",Long.", deaths_global[jLow, 4],"\n\n")
+
 
 ```
+
 
 #### Objective 4.2
 ```{r ob4.2}
+#Country with highest riskscore (if more than one, display the one with the most confirmations)
+n <- 1
+HiRMaxConfirm <-0
+HiRownum <- 0
+LowRMaxConfirm <-0
+LowRownum <-0
+HiMaxConfirmed <- 1
+LoMaxConfirmed <- 1 
 
+for(n in 1:jCntLength) #Iterate through rows 1-289 
+  {
+  #cat(n,"- risk score: ",chkRiskScore, ",Deaths:",deaths_global[n,1147],"confirmed:",confirmed_global[n, 1147],"\n") 
+  
+  if(confirmed_global[n, 1147] == 0)
+    {
+      chkRiskScore <- 0
+    }
+  else
+    {
+      chkRiskScore <- (deaths_global[n,1147]/confirmed_global[n, 1147])*100
+    }
+
+  #cat(n,"- risk score: ",chkRiskScore,",Deaths:",deaths_global[n,1147],",confirmed:",confirmed_global[n, 1147], "\n") 
+ 
+  cat("HI Check:", chkRiskScore,",high_value:",high_value,"\n")      
+  if(chkRiskScore == high_value)  
+    {     
+      if(confirmed_global[n, 1147] >= HiMaxConfirmed)
+        {
+        HiMaxConfirmed <- confirmed_global[n, 1147] 
+        HiColNum <- n
+        cat("----------high_value:",chkRiskScore,",confirmed_global:",confirmed_global[n, 1147],"\n")
+        }
+    }
+  
+  
+  cat("Low Check:", chkRiskScore,",low_value:",low_value,"\n")      
+  if(chkRiskScore == low_value)  
+    {     
+      if(confirmed_global[n, 1147] < LoMaxConfirmed)
+        {
+        LoMaxConfirmed <- confirmed_global[n, 1147] 
+        LoColNum <- n
+        cat("---------low_value:",chkRiskScore,",confirmed_global:",confirmed_global[n, 1147],"\n")
+        }
+    }
+
+      
+  
+  }
+#cat("HiMaxConfirmed:", HiMaxConfirmed,",HiColNum:",HiColNum,",LoMaxConfirmed:",LoMaxConfirmed,", LoColNum:", LoColNum,"\n")
+
+#cat("A:",((deaths_global[HiColNum,1147]/confirmed_global[HiColNum, 1147])*100),"\n")
+
+#cat("confirmed_global:",(confirmed_global[HiColNum, 1147])*100,"\n")
+
+#cat("B:",confirmed_global[LoColNum,1147],"error:",((deaths_global[LoColNum,1147]/confirmed_global[LoColNum, 1147])*100),"\n")  
 ```
-
-
 #### Objective 5
 *You are asked to make two tables with the top 5 countries that have the most COVID-19 related confirmations and and deaths. Make sure to include all of the counts for the country, not just the counts for one area in the country. To do this we will need to sum all of the values for each country, create new data frames from these values, and use the package kable to convert those data frames into tables.*
 
