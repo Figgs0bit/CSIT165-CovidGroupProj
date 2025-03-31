@@ -174,135 +174,101 @@ cat("Distance:",round(distance_meters/1609.34),"- miles\n" ) #1 mile = 1609.34 m
 
 #### Objective 4.1
 ```{r ob4.1}
+#Row and Column variables
+iCntLength <- ncol(deaths_global)#1147 number of columns
+jCntLength <- nrow(deaths_global)#289 number of rows
+
+#Variables for holding highest and lowest Risk score        
+low_value <- 10
+high_value <- 0
+
+#creates vectors to his and lows
+VSUMdeaths_global <- 1:289
+VSUMconfirmed_global <- 1:289
+VSUMRiskScore <- 1:289
+
 # removes NA values
 deaths_global[is.na(deaths_global)] <- 0
 confirmed_global[is.na(confirmed_global)] <- 0
 
-iCntLength <- ncol(deaths_global)#1147 number of columns
-jCntLength <- nrow(deaths_global)#289 number of rows
-
-#loop counter default
-i <- 5
-j <- 1
-
 #Running sum defaults
 SUMdeaths_global <- 0
 SUMconfirmed_global <- 0
-sumRiskScore  <- 0
+SUMRiskScore  <- 0
+emptyClr <- 0
 
-#Variables for highest and lowest Risk score        
-low_value <- 1
-#Holds data frame coordinates for low
-iLow <- 1 
-jLow <- 1
-
-high_value <- 0
-#Holds data frame coordinates for hi
-iHi <- 1 
-jHi <- 1
-
-#For loop iterates throught the entire data frame
-for(j in 1:jCntLength) #Iterate through rows 1-289 
+#For loop iterates through the entire data frame
+for(j in 1:jCntLength) #Iterate through rows 1-289  
   {
+      #Running sum defaults are reset every 1142 loops
+      SUMdeaths_global <- 0
+      SUMconfirmed_global <- 0
+      SUMRiskScore  <- 0
+  
   for(i in 5:iCntLength) #Iterate through columns 1-1147
     {
-      emptyClr <- (deaths_global[j,3] + deaths_global[j,4]) #This variable serves to help filter out locations with zero coordinates.
-
-      if(emptyClr > 0 && confirmed_global[j,i] != 0) #Filters out the first 4 Columns of empty cells in province.state 
-        {
-        #Global riskscore
-        SUMdeaths_global <- SUMdeaths_global + deaths_global[j,i] #holds the sum of every death in data frame.
-        SUMconfirmed_global <- SUMconfirmed_global + confirmed_global[j,i] #holds the sum of every confirmation in data frame.
-        riskScore <- (deaths_global[j,iCntLength]/confirmed_global[j, iCntLength])*100 #Riskscore eqn.=(deaths/confirmations)x100
-
-          #Country with lowest risk score (if more than one, display the one with the most confirmations)
-          if (riskScore > high_value) 
-            {
-            high_value <- riskScore
-            #saves the (i,j) row and col coordinates for high value
-            jHi <- j 
-            iHi <- i
-            }
-
-          #Country with lowest risk score (if more than one, display the one with the most confirmations)
-          if (riskScore < low_value)
-            {
-            low_value <- riskScore
-            #saves the (i,j) row and col coordinates for low value
-            jLow <- j
-            iLow <- i
-            }      
-        }
+      #This variable filters out locations with zero coordinates.
+      emptyClr <- (deaths_global[j,3] + deaths_global[j,4]) 
+      
+      if(emptyClr > 0 && confirmed_global[j,i] > 0) 
+        {    
+          SUMdeaths_global <- SUMdeaths_global + deaths_global[j,i] #holds the sum of every death per row or city, country.
+          SUMconfirmed_global <- SUMconfirmed_global + confirmed_global[j,i] #holds the sum of every confirmation in data frame.
+          SUMRiskScore <- (SUMdeaths_global/SUMconfirmed_global)*100 #Riskscore eqn.=(deaths/confirmations)x100
+        } 
+      else if(confirmed_global[j,i] == 0)
+        {SUMRiskScore <-0}  
     }
-  }
-sumRiskScore <- (SUMdeaths_global/SUMconfirmed_global)*100 #Average Risk Score equation
-cat("\nAverage Risk Score:",sumRiskScore, "\n\n")
+    
+     VSUMdeaths_global[j] <- SUMdeaths_global
+     VSUMconfirmed_global[j] <- SUMconfirmed_global  
+     VSUMRiskScore[j] <- SUMRiskScore  #Vector length 1:289 Holds the risk score (all time) for each location.        
+}
 
-cat("Row positions: ",jHi,",Column Position:",iHi,"\n")
-cat("Highest current Risk Score:", high_value,"\n")
-cat("On Date",ColName[i],",Deaths",deaths_global[jHi,iHi],"/confirmed",confirmed_global[jHi,iHi],"\n")
-cat("Province/State:", deaths_global[jHi, 1],",Country/Region:", deaths_global[jHi, 2],"\n")
-cat("Lat.", deaths_global[jHi, 3],",Long.", deaths_global[jHi, 4],"\n\n")
-
-cat("Row positions: ",jLow,",Column Position:", iLow,"\n")
-cat("Lowest current Risk Score:", low_value,"\n")
-cat("On Date",ColName[i],"Deaths",deaths_global[jLow,iLow],"/confirmed",confirmed_global[jLow,iLow],"\n")
-cat("Province/State:", deaths_global[jLow, 1],",Country/Region:", deaths_global[jLow, 2],"\n")
-cat("Lat.", deaths_global[jLow, 3],",Long.", deaths_global[jLow, 4],"\n\n")
 ```
 
 
 #### Objective 4.2
 ```{r ob4.2}
-#Country with highest risk score (if more than one, display the one with the most confirmations)
+low_value <- min(VSUMRiskScore)
+high_value <- max(VSUMRiskScore)
 
-HiRMaxConfirm <-0
-HiRownum <- 0
-LowRMaxConfirm <-0
-LowRownum <-0
-HiMaxConfirmed <- 1
+HiMaxConfirmed <- 0
 LoMaxConfirmed <- 1 
 
-k <- 1 #count variable
+for(j in 1:jCntLength) #Iterate through rows 1-289  
+{
+      chkRiskScore <- VSUMRiskScore[j]
 
-
-for(k in 1:jCntLength) #Iterate through rows and serves as for loop limit 289
-  {
-  #If else statement filters out zero confirmed_global values.
-  #The confirmed_global variable serves as denominator and can never equal zero. 
-  if(confirmed_global[k, jCntLength] == 0) 
-    {chkRiskScore <- 0}
-  else
-    {chkRiskScore <- (deaths_global[k,iCntLength]/confirmed_global[k, iCntLength])*100}
-
-  
-  if(chkRiskScore == high_value)  
-    {     
-      if(confirmed_global[k, iCntLength] >= HiMaxConfirmed)
+      if(chkRiskScore == high_value)  
+      {     
+        if(VSUMconfirmed_global[j] > HiMaxConfirmed)
         {
-        HiMaxConfirmed <- confirmed_global[k, iCntLength] 
-        HiColNum <- k
+        HiMaxConfirmed <- VSUMconfirmed_global[j] 
+        HiColNum <- j
+        }
+      }
+  
+    if(chkRiskScore == low_value)  
+    {     
+    if(VSUMconfirmed_global[j] < LoMaxConfirmed)
+        {
+        LoMaxConfirmed <- VSUMconfirmed_global[j] 
+        LoColNum <- j
         }
     }
-  
-  
-  if(chkRiskScore == low_value)  
-    {     
-      if(confirmed_global[k, iCntLength] < LoMaxConfirmed)
-        {
-        LoMaxConfirmed <- confirmed_global[k, iCntLength] 
-        LoColNum <- k
-        }
-    }
-  }
-cat("HiMaxConfirmed:", HiMaxConfirmed,",HiColNum:",HiColNum,",LoMaxConfirmed:",LoMaxConfirmed,", LoColNum:", LoColNum,"\n")
+}
+cat("Global Risk Score:",mean(VSUMRiskScore),",Max Risk Score:",max(VSUMRiskScore),",Min Risk Score:",min(VSUMRiskScore),"\n\n")
 
-cat("A:",((deaths_global[HiColNum,1147]/confirmed_global[HiColNum, 1147])*100),"\n")
+cat("Highest Risk Score:",VSUMRiskScore[HiColNum]," - Region(Row) w/ most confrimations:",HiColNum,"\n")
+cat("Province/State:", deaths_global[HiColNum, 1],",Country/Region:",deaths_global[HiColNum, 2],"\n")  
+cat("Lat:", deaths_global[HiColNum, 3],",Long:",deaths_global[HiColNum, 4],"\n\n")
 
-cat("confirmed_global:",(confirmed_global[HiColNum, 1147])*100,"\n")
-
-cat("B:",confirmed_global[LoColNum,1147],"error:",((deaths_global[LoColNum,1147]/confirmed_global[LoColNum, 1147])*100),"\n")  
+cat("Lowest Risk Score:",VSUMRiskScore[LoColNum]," - Region(Row) w/ most confrimations:", LoColNum,"\n")
+cat("Province/State:", deaths_global[LoColNum, 1],",Country/Region:",deaths_global[LoColNum, 2],"\n")  
+cat("Lat:", deaths_global[LoColNum, 3],",Long:",deaths_global[LoColNum, 4],"\n\n")   
 ```
+
 #### Objective 5
 *You are asked to make two tables with the top 5 countries that have the most COVID-19 related confirmations and and deaths. Make sure to include all of the counts for the country, not just the counts for one area in the country. To do this we will need to sum all of the values for each country, create new data frames from these values, and use the package kable to convert those data frames into tables.*
 
