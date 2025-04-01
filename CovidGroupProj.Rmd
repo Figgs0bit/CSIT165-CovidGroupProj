@@ -273,46 +273,62 @@ cat("Lat:", deaths_global[LoColNum, 3],",Long:",deaths_global[LoColNum, 4],"\n\n
 *You are asked to make two tables with the top 5 countries that have the most COVID-19 related confirmations and and deaths. Make sure to include all of the counts for the country, not just the counts for one area in the country. To do this we will need to sum all of the values for each country, create new data frames from these values, and use the package kable to convert those data frames into tables.*
 
 *Hint: Sum each country’s counts by subsetting the data frame using a list of countries available in the data set. Use a for loop to iterate through the data frame using the list of countries. For each country, calculate the count sum and assign this value to a list.*
+
 ```{r ob5}
+SumCountry <- c() #Empty 1D vector to append to risk score of each country.
+SumCountryPos <- c() #Empty 1D vector to append each country in order
+tmpsum <- 0 #Holds the summation of each country that has multiple cities
+j <- 1
 
-ascend <- sort(VSUMRiskScore)
-descend <- rev(ascend)
 
-i <- 0
-top5 <- 5
-
-cat("Highest Riskscore's\n")
-for(i in 1:top5)
+while(j <= jCntLength) #289 rows
 {
-  
-cat("#",i,":",descend[i],"\n")
+chkVal <- VSUMRiskScore[j] # Loads the Risk Score Sum position
+chkcity <- confirmed_global[j,2] #Data frame holds location, [row, Col]-confirmed_global[1,2]  == Afghanistan
 
-  
-for() #289
 
-  
-  
-VSUMRiskScore[j]  
-    
-if (riskScore > high_value) 
+if(j == jCntLength) #Accounts for the [j+1,2] loop feature when approaching the end of the loop. 
+        {
+        SumCountry <- c(SumCountry, chkVal) 
+        SumCountryPos <- c(SumCountryPos,chkcity)  
+        }
+else if(chkcity != confirmed_global[j+1,2])  
+        {
+        SumCountry <- c(SumCountry, chkVal) 
+        SumCountryPos <- c(SumCountryPos,chkcity)  
+        }
+    else
+        {
+          chkVal <- 0
+          k <- j
+          while(chkcity == confirmed_global[k+1,2])
             {
-            high_value <- riskScore
-            #saves the (i,j) row and col coordinates for high value
-            jHi <- j 
-            iHi <- i
+            #cat("Count:",k,",tmpsum:",tmpsum,"Country:",chkcity,"\n")
+            tmpsum <- tmpsum + VSUMRiskScore[k]
+            k <- k + 1
             }
-  
-  
-  
-  
+              chkVal <- chkVal + tmpsum
+              #cat("Count:",j,",",chkVal,"Country:",chkcity,"\n")
+              SumCountry <- c(SumCountry, chkVal) 
+              SumCountryPos <- c(SumCountryPos,chkcity)  
+          j <- j + k
+              
+        }
+j <- j + 1
+#cat(j,":Leaving Loop\n")
 }
 
+#for(u in 1:length(SumCountry)) #289 rows)
+#{
+#cat("[j]:",u,"Country RiskScore:",SumCountry[u],"Country:",SumCountryPos[u],"\n")
+#}
 
-cat("Lowest Risk score's\n")
-for(i in 1:top5)
+for(u in 1:jCntLength)
 {
-cat("#",i,":",ascend[i],"\n")
-}
+cat(u,":",VSUMRiskScore[u],":",deaths_global[u,2],"\n")  
+  
+}  
+
 
 ```
 
