@@ -275,6 +275,45 @@ cat("Lat:", deaths_global[LoColNum, 3],",Long:",deaths_global[LoColNum, 4],"\n\n
 *Hint: Sum each country’s counts by subsetting the data frame using a list of countries available in the data set. Use a for loop to iterate through the data frame using the list of countries. For each country, calculate the count sum and assign this value to a list.*
 ```{r ob5}
 
+ascend <- sort(VSUMRiskScore)
+descend <- rev(ascend)
+
+i <- 0
+top5 <- 5
+
+cat("Highest Riskscore's\n")
+for(i in 1:top5)
+{
+  
+cat("#",i,":",descend[i],"\n")
+
+  
+for() #289
+
+  
+  
+VSUMRiskScore[j]  
+    
+if (riskScore > high_value) 
+            {
+            high_value <- riskScore
+            #saves the (i,j) row and col coordinates for high value
+            jHi <- j 
+            iHi <- i
+            }
+  
+  
+  
+  
+}
+
+
+cat("Lowest Risk score's\n")
+for(i in 1:top5)
+{
+cat("#",i,":",ascend[i],"\n")
+}
+
 ```
 
 
