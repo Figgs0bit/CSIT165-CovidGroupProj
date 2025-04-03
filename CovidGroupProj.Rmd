@@ -113,7 +113,7 @@ cat("Predicted area of Origin had the most initial deaths and confirmed cases (0
 ```{r ob2}
 RowMax <- nrow(confirmed_global[,]) #Qty of Rows 289
 ColMax <- ncol(confirmed_global[,]) #QTy of Columns 1147
-num <- 0 #Holds the rotating confirmed_cases value in loop
+
 ColName <- names(confirmed_global) #Loads the the column names into a vector
 NoConfirmRow <- c()
 
@@ -130,35 +130,48 @@ j <- ColMax #row 289, Start the loop at column 1147
 num <- 1
 
 #The while loop stops running when the num variable loads a value > 0  
-while(j < ColMax+1 && num > 0) #Columns 1147 
+while(j < ColMax+1) #Columns 1147 
   {
-    while(i < RowMax) #Rows 289   
+    while(i < RowMax && num > 0) #Rows 289   
       {
-      if(i==NoConfirmRow[1] || i==NoConfirmRow[2])
-        {num <- 1}
-      else
-        {num <- confirmed_global[i,j]}
-              
-      cat("Inside - Row:",i,"Col:",j,",confirmed_global:",num,"\n")
-      i <- i + 1   
       
+      if(i==NoConfirmRow[1] || i==NoConfirmRow[2])
+        {
+        num <- 1
+        }
+      else if(confirmed_global[i,j] == 0)
+        {
+        num <- confirmed_global[i,j]#confirmed_global[276,915] == 0
+        iPT <- i
+        jPT <- j+1
+        num <- 0
+        }
+        i <- i + 1   
       } 
     i <- 1
     j <- j - 1
   }
 
+#cat("Row",iPT,"Col",jPT,"Cell Found\n") #Row:276, Col: 915 --Pitcairn IslandS
 
-#holds info. for ob3
-#ob2Loc_PS <- confirmed_global[j,1]
-#ob2Loc_CR <- confirmed_global[j,2]
-#ob2Loc_Lat <- confirmed_global[j,3]
-#ob2Loc_Long  <- confirmed_global[j,4]
 
-#Row:277, Col: 915 --Pitcairn IslandS
-#cat("Province/State: ",confirmed_global[j,1],"Country/Region: ",confirmed_global[j,2],"\n")
-#cat("Latitude: ",confirmed_global[j,3]," ,Longitude:",confirmed_global[j,4],"\n")
-#cat("Here is the most recent area to have a first confirmed case.", ColName[i] ,"at:",confirmed_global[j,i],"\n")
+
 ```
+
+```{r ob2.test}
+#holds info. for ob3
+ob2Loc_PS <- confirmed_global[iPT,1]
+ob2Loc_CR <- confirmed_global[iPT,2]
+ob2Loc_Lat <- confirmed_global[iPT,3]
+ob2Loc_Long  <- confirmed_global[iPT,4]
+
+
+cat("Province/State: ",confirmed_global[iPT,1],"Country/Region: ",confirmed_global[iPT,2],"\n")
+cat("Latitude: ",confirmed_global[iPT,3]," ,Longitude:",confirmed_global[iPT,4],"\n")
+cat("Here is the most recent area to have a first confirmed case.", ColName[iPT] ,"at:",confirmed_global[iPT,jPT],"\n")
+
+```
+
 
 ### Objective 3
 *How far away are the areas from objective 2 from where the first confirmed case(s) occurred? Please provide answer(s) in terms of miles. Use the function distm from the R package geosphere to calculate the distance between two coordinates in meters (geosphere::distm). You will need to convert the value returned by distm from meters to miles (this conversion is simple and can be found online). Please use a table or printed statement to describe what Province/State and Country/Region first confirmed cases occurred as well as the distance (in miles) away from the origin. Please print the following: {recent region} is {distance in miles} away from {origin city, origin country}.*
