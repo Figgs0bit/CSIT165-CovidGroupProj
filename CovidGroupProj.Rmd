@@ -101,11 +101,12 @@ ob1Loc_Long  <- deaths_global[RowMax,4]
 
 #Prints out location of most deatch and confirmations
 deathNconfimred <- deaths_global[RowMax,5] + confirmed_global[RowMax,5]
-cat("Province/State:",deaths_global[RowMax,1],"Country/Region:",deaths_global[RowMax,2],"\n")
+cat("Province/State:",deaths_global[RowMax,1],"Country/Region:",
+    deaths_global[RowMax,2],"\n")
 cat("Latitude:",deaths_global[RowMax,3],",Longitude:",deaths_global[RowMax,4],"\n")
 cat("Deaths:",deaths_global[RowMax,5],",confirmed cases:",confirmed_global[RowMax,5],"\n")
-cat("Predicted area of Origin had the most initial deaths and confirmed cases on (01.22.2020):"
-    ,deathNconfimred,"\n")
+cat("Predicted Origin area had the most initial deaths and confirmed cases on (01.22.2020):",
+    deathNconfimred,"\n")
 
 ```
 
@@ -144,8 +145,8 @@ while(j < ColMax+1 && num > 0) #Iterates through Columns back wards 1147
           {
           #prevents the num variable loading one of these rows. 
           }
-        else if(confirmed_global[i,j] == 0) #This if conditional serves to exit the entire-
-          {                                 #while loop when it encounters it's first zero
+        else if(confirmed_global[i,j] == 0)#This if conditional serves to exit the entire-
+          {                               #while loop when it encounters it's first zero
           num <- confirmed_global[i,j]#holds the variable to be tested
           iPT <- i #holds row position of first encountered zero location
           jPT <- j+1 #holds Column position of that zero, increments +1 
@@ -166,7 +167,8 @@ ob2Loc_Lat <- confirmed_global[iPT,3]
 ob2Loc_Long  <- confirmed_global[iPT,4]
 
 #print location from loop
-cat("Province/State: ",confirmed_global[iPT,1],"Country/Region: ",confirmed_global[iPT,2],"\n")
+cat("Province/State: ",confirmed_global[iPT,1],"Country/Region: ",
+    confirmed_global[iPT,2],"\n")
 cat("Latitude: ",confirmed_global[iPT,3]," ,Longitude:",confirmed_global[iPT,4],"\n")
 cat("Here is the most recent area to have a first confirmed case.", ColName[iPT] ,"-\n")
 cat("at:",confirmed_global[iPT,jPT],"\n")
@@ -178,7 +180,8 @@ cat("at:",confirmed_global[iPT,jPT],"\n")
 
 ```{r ob3}
 #Calculate the distance using distm() and distHaversine.
-distance_meters <- distm(c(ob1Loc_Long, ob1Loc_Lat), c(ob2Loc_Long, ob2Loc_Lat), fun = distHaversine)
+distance_meters <- distm(c(ob1Loc_Long, ob1Loc_Lat), c(ob2Loc_Long, ob2Loc_Lat),
+                         fun = distHaversine)
 
 #print information
 cat("From (ob1):\n")
@@ -205,6 +208,7 @@ cat("Distance between locations:",round(distance_meters/1609.34),"- miles\n" )
 *Which area of the world currently has the lowest risk score (if more than one, display the one with the most confirmations)? Which area of the world currently has the highest risk score (if more than one, display the one with the most confirmations)? How do risk scores in these areas compare to global risk score? Why might it be helpful to calculate metrics like risk scores for different areas of the world and what would their limitations be (what assumptions does risk score make and what important variables might be left out)?*
 
 #### Objective 4.1
+
 ```{r ob4.1}
 #Row and Column variables
 iCntLength <- ncol(deaths_global)#1147 number of columns
@@ -235,7 +239,8 @@ emptyClr <- 0 #serves to remove rows(regions) without lat/long coordinates.
 #For loop iterates through the entire data frame
 for(j in 1:jCntLength) #Iterate through rows 1-289  
   {
-      #Running sum defaults are reset every 1142 loops as every 1142 loops accounts for a region.
+      #Running sum defaults are reset every 1142 loops as- 
+      #every 1142 loops accounts for a region.
       SUMdeaths_global <- 0
       SUMconfirmed_global <- 0
       SUMRiskScore  <- 0
@@ -243,7 +248,8 @@ for(j in 1:jCntLength) #Iterate through rows 1-289
   for(i in 5:iCntLength) #Iterate through columns 1-1142 as we start at column 5
     {
       #This variable filters out locations with zero coordinates
-      #This also filters out where confirmed_global values are (0) as to avoid division by zero
+      #This also filters out where confirmed_global values- 
+      #are (0) as to avoid division by zero
       emptyClr <- (deaths_global[j,3] + deaths_global[j,4]) 
       
       if(emptyClr > 0 && confirmed_global[j,i] > 0) 
@@ -252,7 +258,8 @@ for(j in 1:jCntLength) #Iterate through rows 1-289
           SUMdeaths_global <- SUMdeaths_global + deaths_global[j,i]
           #holds the sum of every confirmation in data frame.
           SUMconfirmed_global <- SUMconfirmed_global + confirmed_global[j,i]
-          #Risk score eqn.=(deaths/confirmations)x100#Risk score eqn.=(deaths/confirmations)x100
+          #Risk score eqn.=(deaths/confirmations)x100#Risk- 
+          #score eqn.=(deaths/confirmations)x100
           SUMRiskScore <- (SUMdeaths_global/SUMconfirmed_global)*100 
        } 
       #also filters out locations with zero coordinates
@@ -270,6 +277,7 @@ for(j in 1:jCntLength) #Iterate through rows 1-289
 
 
 #### Objective 4.2
+
 ```{r ob4.2}
 #holds the low/Hi risk score values for the IF condition statements.
 low_value <- min(VSUMRiskScore)
@@ -283,7 +291,8 @@ for(j in 1:jCntLength) #Iterate through rows 1-289
 {
       chkRiskScore <- VSUMRiskScore[j]#Regions risk score to be checked
 
-      #Nested IF statements serve to find which common high risk score value has the highest confirmed_global values.
+      #Nested IF statements serve to find which common high risk score- 
+      #value has the highest confirmed_global values.
       if(chkRiskScore == high_value)   
       {     
         if(VSUMconfirmed_global[j] > HiMaxConfirmed)
@@ -292,7 +301,8 @@ for(j in 1:jCntLength) #Iterate through rows 1-289
         HiColNum <- j #saves the location by recording what row
         }
       }
-      #Nested IF statements serve to find which common low risk score value has the highest confirmed_global values.
+      #Nested IF statements serve to find which common low risk- 
+      #score value has the highest confirmed_global values.
       else if(chkRiskScore == low_value)  
      {     
      if(VSUMconfirmed_global[j] < LoMaxConfirmed)
@@ -303,14 +313,19 @@ for(j in 1:jCntLength) #Iterate through rows 1-289
      }
 }
 #prints results
-cat("Global Risk Score:",mean(VSUMRiskScore),",Max Risk Score:",max(VSUMRiskScore),",Min Risk Score:",min(VSUMRiskScore),"\n\n")
+cat("Global Risk Score:",mean(VSUMRiskScore),",Max Risk Score:",max(VSUMRiskScore),
+    ",Min Risk Score:",min(VSUMRiskScore),"\n\n")
 
-cat("Highest Risk Score:",VSUMRiskScore[HiColNum]," - Region(Row) w/ most confrimations:",HiColNum,"\n")
-cat("Province/State:", deaths_global[HiColNum, 1],",Country/Region:",deaths_global[HiColNum, 2],"\n")  
+cat("Highest Risk Score:",VSUMRiskScore[HiColNum],
+    " - Region(Row) w/ most confrimations:",HiColNum,"\n")
+cat("Province/State:", deaths_global[HiColNum, 1],
+    ",Country/Region:",deaths_global[HiColNum, 2],"\n")  
 cat("Lat:", deaths_global[HiColNum, 3],",Long:",deaths_global[HiColNum, 4],"\n\n")
 
-cat("Lowest Risk Score:",VSUMRiskScore[LoColNum]," - Region(Row) w/ most confrimations:", LoColNum,"\n")
-cat("Province/State:", deaths_global[LoColNum, 1],",Country/Region:",deaths_global[LoColNum, 2],"\n")  
+cat("Lowest Risk Score:",VSUMRiskScore[LoColNum],
+    " - Region(Row) w/ most confrimations:", LoColNum,"\n")
+cat("Province/State:", deaths_global[LoColNum, 1],
+    ",Country/Region:",deaths_global[LoColNum, 2],"\n")  
 cat("Lat:", deaths_global[LoColNum, 3],",Long:",deaths_global[LoColNum, 4],"\n\n")   
 ```
 
@@ -325,7 +340,8 @@ cat("Lat:", deaths_global[LoColNum, 3],",Long:",deaths_global[LoColNum, 4],"\n\n
 #create empty vectors
 RecentDeath <- c() #Will Hold all 289 entries of deaths_global from (3/9/2023)
 RecentConfirm <- c() #Will Hold all 289 entries of confirmed_global from (3/9/2023)
-V_comfirmedPdeaths <- c() #Will Hold all 289 entries of the sum of deaths_global+confirmed_global
+#Will Hold all 289 entries of the sum of deaths_global+confirmed_global
+V_comfirmedPdeaths <- c() 
 V_Bloc <- character() #Will Hold all 289 entries of the column 3, Country/Region
 sumCnD <- 0 
 iCntLength <- ncol(deaths_global)#1147 number of columns
@@ -338,59 +354,74 @@ for(j in 1:jCntLength) #Iterate through rows 1-289
   {
     Drecent <- deaths_global[j,i] #deaths_global tmp var
     CRecent <- confirmed_global[j,i] #confirmed_global tmp var
-    DCtot <- deaths_global[j,i] + confirmed_global[j,i] #deaths_global + confirmed_global tmp var
+    #deaths_global + confirmed_global tmp var
+    DCtot <- deaths_global[j,i] + confirmed_global[j,i] 
     Bloc <- deaths_global[j,2] #country/region tmp var
 
     #Populate vectors
-    V_comfirmedPdeaths <- c(V_comfirmedPdeaths, DCtot) #adds deaths_global + confirmed_global to new vector
+    #adds deaths_global + confirmed_global to new vector
+    V_comfirmedPdeaths <- c(V_comfirmedPdeaths, DCtot) 
     V_Bloc <- c(V_Bloc, Bloc) #adds Country/Region to new vector
   }
 
 #These nmew vectors hold the shorten data frame after consolidating common country data.
-Final_comfirmedPdeaths <- c() #Will Hold all 289 entries of the sum of deaths_global+confirmed_global
+#Will Hold all 289 entries of the sum of deaths_global+confirmed_global
+Final_comfirmedPdeaths <- c() 
 Final_Bloc <- character() #Will Hold all 289 entries of the column 3, Country/Region
 
 #for loop consolidates all multiple country data rows
 for(j in 1:jCntLength) #Iterate through rows 1-289  
 {
-  #The following if else ladder sorts and filter the duplicate countries and combine the data.
-  if(V_Bloc[j] == V_Bloc[1]) #This if conditional is need as the the first row will not fall through the remaing if statements.
-  { 
-    Final_comfirmedPdeaths <- c(Final_comfirmedPdeaths, V_comfirmedPdeaths[j]) #adds deaths_global + confirmed_global to new vector
+  #The following if else ladder sorts and filter the duplicate- 
+  #countries and combine the data.
+  #This if conditional is need as the the first row will-
+  #not fall through the remaining if statements.
+  if(V_Bloc[j] == V_Bloc[1]) 
+  { #adds deaths_global + confirmed_global to new vector
+    Final_comfirmedPdeaths <- c(Final_comfirmedPdeaths, V_comfirmedPdeaths[j]) 
     Final_Bloc <- c(Final_Bloc, deaths_global[j,2]) #adds Country/Region to new vector
   }
   else if(V_Bloc[j] %in% V_Bloc[j+1]) #sums the commmon country data
     { 
     sumCnD <- sumCnD + V_comfirmedPdeaths[j]
     }
-  else if((V_Bloc[j] %in% V_Bloc[j-1]) && (V_Bloc[j] != V_Bloc[j+1])) #loads the combine data under one country. 
+  #loads the combine data under one country.
+  else if((V_Bloc[j] %in% V_Bloc[j-1]) && (V_Bloc[j] != V_Bloc[j+1]))  
     { 
     sumCnD <- sumCnD + V_comfirmedPdeaths[j]
-    Final_comfirmedPdeaths <- c(Final_comfirmedPdeaths, sumCnD) #adds deaths_global + confirmed_global to new vector
+    #adds deaths_global + confirmed_global to new vector
+    Final_comfirmedPdeaths <- c(Final_comfirmedPdeaths, sumCnD) 
     Final_Bloc <- c(Final_Bloc, deaths_global[j,2]) #adds Country/Region to new vector
     sumCnD <- 0
     }
   else
    { 
-    Final_comfirmedPdeaths <- c(Final_comfirmedPdeaths, V_comfirmedPdeaths[j]) #adds deaths_global + confirmed_global to new vector
+    #adds deaths_global + confirmed_global to new vector 
+    Final_comfirmedPdeaths <- c(Final_comfirmedPdeaths, V_comfirmedPdeaths[j]) 
     Final_Bloc <- c(Final_Bloc, deaths_global[j,2]) #adds Country/Region to new vector
    }
   }
 
 #creates a data frame with country/region and (deaths_global + confirmed_global) values.
 df_comfirmedPdeaths <- data.frame(Final_Bloc, Final_comfirmedPdeaths)
-RowCut <- nrow(df_comfirmedPdeaths) #this creates a variable need to cut/delete unneeded rows. 
+#this creates a variable need to cut/delete unneeded rows.
+RowCut <- nrow(df_comfirmedPdeaths)  
 
-df_decreasing <- df_comfirmedPdeaths[order(df_comfirmedPdeaths$Final_comfirmedPdeaths, decreasing = TRUE),] #list the Dataframe in decreasing order
+#list the Dataframe in decreasing order
+df_decreasing <- df_comfirmedPdeaths[order(df_comfirmedPdeaths$Final_comfirmedPdeaths,
+                                           decreasing = TRUE),] 
 top5 <- df_decreasing[-(6:RowCut),] #removes the rows starting at row 6.
 #creates table for "TOP 5: Recent Comfirmations & Deaths"
-knitr::kable(top5, "pipe", col.name=c('Country/Region','comfirmed & deaths'),caption = "TOP 5: Recent Comfirmations & Deaths",align=c("r","c","c"))
+knitr::kable(top5, "pipe", col.name=c('Country/Region','comfirmed & deaths'),
+             caption = "TOP 5: Recent Comfirmations & Deaths",align=c("r","c","c"))
 
-
-df_increasing <- df_comfirmedPdeaths[order(df_comfirmedPdeaths$Final_comfirmedPdeaths, decreasing = FALSE),] #list the Dataframe in increasing order
+#list the Dataframe in increasing order
+df_increasing <- df_comfirmedPdeaths[order(df_comfirmedPdeaths$Final_comfirmedPdeaths,
+                                           decreasing = FALSE),] 
 bot5 <- df_increasing[-(6:RowCut),] #removes the rows starting at row 6.
 #creates table for "TOP 5: Recent Comfirmations & Deaths"
-knitr::kable(bot5, "pipe", col.name=c('Country/Region','comfirmed & deaths'),caption = "BOTTOM 5: Recent Comfirmations & Deaths",align=c("r","c","c"))
+knitr::kable(bot5, "pipe", col.name=c('Country/Region','comfirmed & deaths'),
+             caption = "BOTTOM 5: Recent Comfirmations & Deaths",align=c("r","c","c"))
 ```
 
 
