@@ -22,6 +22,7 @@ header-includes:
   - \usepackage[normalem]{ulem}
   - \usepackage{makecell}
   - \usepackage{xcolor}
+
 ---
 
 ```{r setup, include = FALSE}
@@ -37,6 +38,7 @@ library(magrittr)
 library(readr)
 library(geosphere)
 ```
+
 
 ```{r Data setup, include = FALSE}
 #data linked to github repository (https://github.com/CSSEGISandData/COVID-19/tree/master/csse_covid_19_data/csse_covid_19_time_series).
@@ -301,48 +303,72 @@ cat("Lat:", deaths_global[LoColNum, 3],",Long:",deaths_global[LoColNum, 4],"\n\n
 #j_Row <- c(vector, add)
 
 #create empty vectors
-RecentDeath <- c()
-RecentConfirm <- c()
-V_comfirmedPdeaths <- c()
-V_Bloc <- character() #Holds all Country Region
+RecentDeath <- c() #Will Hold all 289 entries of deaths_global from (3/9/2023)
+RecentConfirm <- c() #Will Hold all 289 entries of confirmed_global from (3/9/2023)
+V_comfirmedPdeaths <- c() #Will Hold all 289 entries of the sum of deaths_global+confirmed_global
+V_Bloc <- character() #Will Hold all 289 entries of the column 3, Country/Region
+sumCnD <- 0 
+iCntLength <- ncol(deaths_global)#1147 number of columns
+i <- iCntLength # postion of final column (3/9/2023)
+jCntLength <- nrow(deaths_global)#289 number of rows
 
 
-
-i <- 1147
-
-#For loop arrangement goes through an entire row and then shifts to next row.
+#For loop arrangement goes through an entire column and while loading data into vectors.
 for(j in 1:jCntLength) #Iterate through rows 1-289  
   {
-#  
-    Drecent <- deaths_global[j,i]
-    CRecent <- confirmed_global[j,i]
-    DCtot <- deaths_global[j,i] + confirmed_global[j,i]
-    Bloc <- deaths_global[j,2]
+    Drecent <- deaths_global[j,i] #deaths_global tmp var
+    CRecent <- confirmed_global[j,i] #confirmed_global tmp var
+    DCtot <- deaths_global[j,i] + confirmed_global[j,i] #deaths_global + confirmed_global tmp var
+    Bloc <- deaths_global[j,2] #country/region tmp var
 
     #Populate vectors
-    V_comfirmedPdeaths <- c(V_comfirmedPdeaths, DCtot)
-    V_Bloc <- c(V_Bloc, Bloc) #Holds all Country Region
-
-
+    V_comfirmedPdeaths <- c(V_comfirmedPdeaths, DCtot) #adds deaths_global + confirmed_global to new vector
+    V_Bloc <- c(V_Bloc, Bloc) #adds Country/Region to new vector
   }
 
-df_comfirmedPdeaths <- data.frame(V_Bloc, V_comfirmedPdeaths)
+#for loop consolidates all multiple country data rows
+
+Final_comfirmedPdeaths <- c() #Will Hold all 289 entries of the sum of deaths_global+confirmed_global
+Final_Bloc <- character() #Will Hold all 289 entries of the column 3, Country/Region
+
 
 for(j in 1:jCntLength) #Iterate through rows 1-289  
   {
-
-#combine common countries HERE
-
+  
+  if(V_Bloc[j] == V_Bloc[1])
+    { 
+    Final_comfirmedPdeaths <- c(Final_comfirmedPdeaths, V_comfirmedPdeaths[j]) #adds deaths_global + confirmed_global to new vector
+    Final_Bloc <- c(Final_Bloc, deaths_global[j,2]) #adds Country/Region to new vector
+    }
+  else if(V_Bloc[j] %in% V_Bloc[j+1])
+    { 
+    sumCnD <- sumCnD + V_comfirmedPdeaths[j]
+    }
+  else if((V_Bloc[j] %in% V_Bloc[j-1]) && (V_Bloc[j] != V_Bloc[j+1]))
+    { 
+    sumCnD <- sumCnD + V_comfirmedPdeaths[j]
+    Final_comfirmedPdeaths <- c(Final_comfirmedPdeaths, sumCnD) #adds deaths_global + confirmed_global to new vector
+    Final_Bloc <- c(Final_Bloc, deaths_global[j,2]) #adds Country/Region to new vector
+    sumCnD <- 0
+    }
+  else
+   { 
+    Final_comfirmedPdeaths <- c(Final_comfirmedPdeaths, V_comfirmedPdeaths[j]) #adds deaths_global + confirmed_global to new vector
+    Final_Bloc <- c(Final_Bloc, deaths_global[j,2]) #adds Country/Region to new vector
+   }
   }
 
+#creates a data frame with country/region and (deaths_global + confirmed_global) values.
+df_comfirmedPdeaths <- data.frame(Final_Bloc, Final_comfirmedPdeaths)
+RowCut <- nrow(df_comfirmedPdeaths)
 
-df_decreasing <- df_comfirmedPdeaths[order(df_comfirmedPdeaths$V_comfirmedPdeaths, decreasing = TRUE),]
-top5 <- df_decreasing[-(6:289),]
+df_decreasing <- df_comfirmedPdeaths[order(df_comfirmedPdeaths$Final_comfirmedPdeaths, decreasing = TRUE),]
+top5 <- df_decreasing[-(6:RowCut),]
 knitr::kable(top5, "pipe", col.name=c('Country/Region','comfirmed & deaths'),caption = "TOP 5: Recent Comfirmations & Deaths",align=c("r","c","c"))
 
 
-df_increasing <- df_comfirmedPdeaths[order(df_comfirmedPdeaths$V_comfirmedPdeaths, decreasing = FALSE),]
-bot5 <- df_increasing[-(6:289),]
+df_increasing <- df_comfirmedPdeaths[order(df_comfirmedPdeaths$Final_comfirmedPdeaths, decreasing = FALSE),]
+bot5 <- df_increasing[-(6:RowCut),]
 knitr::kable(bot5, "pipe", col.name=c('Country/Region','comfirmed & deaths'),caption = "BOTTOM 5: Recent Comfirmations & Deaths",align=c("r","c","c"))
 ```
 
