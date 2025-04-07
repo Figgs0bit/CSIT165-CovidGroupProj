@@ -1,0 +1,558 @@
+---
+title: "Group Project: Covid Origins"
+author: "Name: Sal Figueroa  \n Partner: Kylie Stearns"
+date: "`r Sys.Date()`"
+output: 
+  pdf_document:
+    toc: true
+    toc_depth: 3
+header-includes:
+#These packages are not necessary to complete the assignment and or only used to provide an example. 
+  - \usepackage{booktabs}
+  - \usepackage{longtable}
+  - \usepackage{array}
+  - \usepackage{multirow}
+  - \usepackage{wrapfig}
+  - \usepackage{float}
+  - \usepackage{colortbl}
+  - \usepackage{pdflscape}
+#  - \usepackage{tabu}  #when tabu package enabled PDF won't knit
+  - \usepackage{threeparttable}
+  - \usepackage{threeparttablex}
+  - \usepackage[normalem]{ulem}
+  - \usepackage{makecell}
+  - \usepackage{xcolor}
+
+---
+
+```{r setup, include = FALSE}
+#### Load necessary library ####
+packages <- c("knitr", "kableExtra", "magrittr", "readr", "geosphere")
+
+install_me <- packages[!(packages %in% installed.packages()[, "Package"])]
+if (length(install_me)) install.packages(install_me)
+
+library(knitr)
+#library(kableExtra) #when kablextra library enabled PDF won't knit
+library(magrittr)
+library(readr)
+library(geosphere)
+
+#Data setup
+#data linked to github repository (https://github.com/CSSEGISandData/COVID-19/tree/master/csse_covid_19_data/csse_covid_19_time_series).
+
+#time_series_covid19_confirmed_global.csv
+confirmed_global <- as.data.frame(read.csv("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/refs/heads/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv"))
+
+#time_series_covid19_deaths_global.csv
+deaths_global <- as.data.frame(read.csv("https://raw.githubusercontent.com/Figgs0bit/CSIT165-CovidGroupProj/refs/heads/main/time_series_covid19_deaths_global.csv"))
+
+#time_series_covid19_recovered_global.csv
+recovered_global <- as.data.frame(read.csv("https://raw.githubusercontent.com/Figgs0bit/CSIT165-CovidGroupProj/refs/heads/main/time_series_covid19_recovered_global.csv"))
+```
+
+- 
+-
+
+## Background
+
+The World Health Organization has recently employed a new data science initiative, *CSIT-165*, that uses data science to characterize pandemic diseases. 
+*CSIT-165* disseminates data driven analyses to global decision makers.
+
+*CSIT-165* is a conglomerate comprised of two fabricated entities: *Global Health Union (GHU)* and *Private Diagnostic Laboratories (PDL)*. 
+Your and your partner's role is to play a data scientist from one of these two entities.
+
+
+## Data
+> [2019 Novel Coronavirus COVID-19 (2019-nCoV) Data Repository by John Hopkins CSSE](https://github.com/CSSEGISandData/COVID-19/tree/master/csse_covid_19_data/csse_covid_19_time_series)
+
+Data for 2019 Novel Corona virus is operated by the John Hopkins University Center for Systems Science and Engineering (JHU CSSE).
+Data includes daily time series CSV summary tables, including confirmations, recoveries, and deaths. 
+Country/region are countries/regions hat conform to World Health Organization (WHO).
+Lat and Long refer to coordinates references for the user. 
+Date fields are stored in MM/DD/YYYY format.
+
+*Git hub repository for project located at:*
+
+**(https://github.com/Figgs0bit/CSIT165-CovidGroupProj)**
+
+
+## Project Objectives
+
+### Objective 1
+
+```{r ob1}
+#Most deaths and confirmed cases on x1.22.20 (date)
+#find max value in column 5 (10.22.20) and check to see 
+#-how many common max values there is.
+max_value <- 0 #holds the updated max_value
+RowMax <- 0 #this holds row (i) position in Data frame
+
+#For loop starting it column 5 to final column using nrow().
+for(i in 1:nrow(deaths_global[,])) #loops 289 times through every row on 1st day
+{
+num <- deaths_global[i,5] + confirmed_global[i,5]#Holds value to be tested against-
+                                                 #the current max value.
+  
+  if (num > max_value) #conditional if loop that updates the max value- 
+    {                  #as iterates through column 5.
+    max_value <- num # place holder for new max value.
+    RowMax <- i #Holds the row position where the max value is located
+    }
+}
+
+#holds col row info. for ob3
+ob1Loc_PS <- deaths_global[RowMax,1]
+ob1Loc_CR <- deaths_global[RowMax,2]
+ob1Loc_Lat <- deaths_global[RowMax,3]
+ob1Loc_Long  <- deaths_global[RowMax,4]
+
+#Prints out location of most deatch and confirmations
+deathNconfimred <- deaths_global[RowMax,5] + confirmed_global[RowMax,5]
+cat("Province/State:",deaths_global[RowMax,1],"Country/Region:",
+    deaths_global[RowMax,2],"\n")
+cat("Latitude:",deaths_global[RowMax,3],",Longitude:",deaths_global[RowMax,4],"\n")
+cat("Deaths:",deaths_global[RowMax,5],",confirmed cases:",confirmed_global[RowMax,5],"\n\n")
+cat("Predicted Origin is located in the",deaths_global[RowMax,1],"Province.\n")
+cat("The largest city in the",deaths_global[RowMax,1],"Province is Wuhan.\n")
+
+```
+
+* ***ob1 Results*** 
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+
+    *Province/State: Hubei Country/Region: China* 
+    *Latitude: 30.9756 ,Longitude: 112.2707* 
+    *Deaths: 17 ,confirmed cases: 444* 
+    *Predicted Origin is located in the Hubei Province.*
+    *The largest city in the Hubei Province is Wuhan.*
+
+* ***ob1 end*** 
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+
+### Objective 2 
+
+```{r ob2}
+RowMax <- nrow(confirmed_global[,]) #limit Qty of Rows 289
+ColMax <- ncol(confirmed_global[,]) #limit QTy of Columns 1147
+
+ColName <- names(confirmed_global) #Loads the the column names into a vector to print date
+NoConfirmRow <- c() # creates an empty vector to hold excluded rows to avoid
+
+for(i in 1:RowMax)#loops 289x
+  {
+  if(confirmed_global[i,ColMax] == 0) #loops 1147, loop finds rows that never had a-
+                                      #confirmed case and excludes them later.
+    {NoConfirmRow <- c(NoConfirmRow,i)} #Loads row numbers to be used as filter later.
+  }  
+
+#initiates the loop counter and used for pulling data from data frame.
+i <- 1 #COl counter 1147
+j <- ColMax #row 289, Start the loop at last column (1147)
+
+
+#The while loop stops running when the num variable loads a value > 0  
+#set initial condition to enter while loop. This allows the loop to stop once it-
+#encounter the first (0) in the data frame.
+num <- 1 
+while(j < ColMax+1 && num > 0) #Iterates through Columns back wards 1147 
+  {
+    while(i < RowMax && num > 0) #Iterates through rows (289) top-to-bottom.
+      {
+        #This if conditional serves to filter out rows that never had a confirmation
+        if(i==NoConfirmRow[1] || i==NoConfirmRow[2])
+          {
+          #prevents the num variable loading one of these rows. 
+          }
+        else if(confirmed_global[i,j] == 0)#This if conditional serves to exit the entire-
+          {                               #while loop when it encounters it's first zero
+          num <- confirmed_global[i,j]#holds the variable to be tested
+          iPT <- i #holds row position of first encountered zero location
+          jPT <- j+1 #holds Column position of that zero, increments +1 
+          num <- 0 #CRITICAL! First time the loop-
+          }        #ends num sets to (0) this stops the all the loops
+          i <- i + 1 #Row, Serves as the while loops increment line
+      } 
+    i <- 1 #The nature of the nested while loops requires the inner loop to reset.
+    j <- j - 1 #Col, Serves as the while loops de-increment line
+  }
+
+#holds info. for ob3
+ob2Loc_PS <- confirmed_global[iPT,1]
+ob2Loc_CR <- confirmed_global[iPT,2]
+ob2Loc_Lat <- confirmed_global[iPT,3]
+ob2Loc_Long  <- confirmed_global[iPT,4]
+
+#print location from loop
+cat("The most recent area to have a first confirmed case is located at:\n")
+cat("Province/State: ",confirmed_global[iPT,1],"\n")
+cat("Country/Region: ",confirmed_global[iPT,2],"\n")
+cat("Latitude: ",confirmed_global[iPT,3]," ,Longitude:",confirmed_global[iPT,4],"\n")
+```
+
+* ***ob2 Results*** 
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+
+    *The most recent area to have a first confirmed case is located at:*
+    *Province/State:  Pitcairn Islands* 
+    *Country/Region:  United Kingdom *
+    *Latitude:  -24.3768  ,Longitude: -128.3242 *
+
+* ***ob2 end*** 
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+
+### Objective 3
+
+```{r ob3}
+#Calculate the distance using distm() and distHaversine.
+distance_meters <- distm(c(ob1Loc_Long, ob1Loc_Lat), c(ob2Loc_Long, ob2Loc_Lat),
+                         fun = distHaversine)
+
+#print information
+cat("From (ob1):\n")
+#prints Province/State and Country/Region location
+cat("Province/State:",ob1Loc_PS,"Country/Region:",ob1Loc_CR,"\n")
+#Prints lat and long 1st (ob1) location
+cat("Latitude:",ob1Loc_Lat,",Longitude:",ob1Loc_Long,"\n\n") 
+cat("To (ob2):\n")
+#prints Province/State and Country/Region location
+cat("Province/State:",ob2Loc_PS,"Country/Region:",ob2Loc_CR,"\n")
+#Prints lat and long 2nd location
+cat("Latitude:",ob2Loc_Lat,",Longitude:",ob2Loc_Long,"\n\n")
+#Print the distance in meters
+cat("Distance between locations:",round(distance_meters), "- meters\n") 
+#Print the distance in Kilometers
+cat("Distance between locations:",round(distance_meters/1000),"- Kilometers\n")
+#1 mile = 1609.34 meters
+cat("Distance between locations:",round(distance_meters/1609.34),"- miles\n\n")
+
+
+cat(ob1Loc_PS,",",ob1Loc_CR,"is",round(distance_meters/1609.34),
+    "miles away from",ob2Loc_PS,",",ob2Loc_CR,".\n")
+
+
+
+```
+
+* ***ob3 Results*** 
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+
+  *From (ob1):*
+    *Province/State: Hubei Country/Region: China *
+    *Latitude: 30.9756 ,Longitude: 112.2707*
+    
+  *To (ob2):*
+    *Province/State: Pitcairn Islands Country/Region: United Kingdom *
+    *Latitude: -24.3768 ,Longitude: -128.3242 *
+  
+  *Distances:*
+    *Distance between locations: 14090120 - meters*
+    *Distance between locations: 14090 - Kilometers*
+    *Distance between locations: 8755 - miles*
+    *Hubei , China is 8755 miles away from Pitcairn Islands , United Kingdom .*
+
+* ***ob3 end*** 
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+
+### Objective 4
+
+#### Objective 4.1
+
+```{r ob4.1}
+#Row and Column variables
+iCntLength <- ncol(deaths_global)#1147 number of columns
+jCntLength <- nrow(deaths_global)#289 number of rows
+
+#Variables for holding highest and lowest Risk score        
+low_value <- 10
+high_value <- 0
+
+#creates vectors to his and lows
+#Hold the deaths_global value of each separate area of the world
+VSUMdeaths_global <- 1:jCntLength 
+#Hold the confirmed_global value of each separate area of the world
+VSUMconfirmed_global <- 1:jCntLength 
+#Hold the risk score value of each separate area of the world
+VSUMRiskScore <- 1:jCntLength 
+
+# removes NA values
+deaths_global[is.na(deaths_global)] <- 0
+confirmed_global[is.na(confirmed_global)] <- 0
+
+#Running sum defaults
+SUMdeaths_global <- 0
+SUMconfirmed_global <- 0
+SUMRiskScore  <- 0
+emptyClr <- 0 #serves to remove rows(regions) without lat/long coordinates.
+
+#For loop iterates through the entire data frame
+for(j in 1:jCntLength) #Iterate through rows 1-289  
+  {
+      #Running sum defaults are reset every 1142 loops as- 
+      #every 1142 loops accounts for a region.
+      SUMdeaths_global <- 0
+      SUMconfirmed_global <- 0
+      SUMRiskScore  <- 0
+  
+  for(i in 5:iCntLength) #Iterate through columns 1-1142 as we start at column 5
+    {
+      #This variable filters out locations with zero coordinates
+      #This also filters out where confirmed_global values- 
+      #are (0) as to avoid division by zero
+      emptyClr <- (deaths_global[j,3] + deaths_global[j,4]) 
+      
+      if(emptyClr > 0 && confirmed_global[j,i] > 0) 
+        { 
+          #holds the sum of every death per row or city, country.
+          SUMdeaths_global <- SUMdeaths_global + deaths_global[j,i]
+          #holds the sum of every confirmation in data frame.
+          SUMconfirmed_global <- SUMconfirmed_global + confirmed_global[j,i]
+          #Risk score eqn.=(deaths/confirmations)x100#Risk- 
+          #score eqn.=(deaths/confirmations)x100
+          SUMRiskScore <- (SUMdeaths_global/SUMconfirmed_global)*100 
+       } 
+      #also filters out locations with zero coordinates
+      else if(emptyClr > 0 && confirmed_global[j,i] == 0) 
+        {SUMRiskScore <-0} #As confirmed_global is a denominator in the risk-
+    }                      #score equation it can never equal zero.    
+     #This loads the each vector with rolling derived risk score equation values. 
+     VSUMdeaths_global[j] <- SUMdeaths_global
+     VSUMconfirmed_global[j] <- SUMconfirmed_global  
+     #Vector (length 1:289) Holds the risk score (all time) for each location.        
+     VSUMRiskScore[j] <- SUMRiskScore  
+}
+
+```
+
+
+#### Objective 4.2
+
+```{r ob4.2}
+#holds the low/Hi risk score values for the IF condition statements.
+low_value <- min(VSUMRiskScore)
+high_value <- max(VSUMRiskScore)
+
+#Holds the rotating low/hi values of the for loop
+HiMaxConfirmed <- 0
+LoMaxConfirmed <- 1 
+
+for(j in 1:jCntLength) #Iterate through rows 1-289  
+{
+      chkRiskScore <- VSUMRiskScore[j]#Regions risk score to be checked
+
+      #Nested IF statements serve to find which common high risk score- 
+      #value has the highest confirmed_global values.
+      if(chkRiskScore == high_value)   
+      {     
+        if(VSUMconfirmed_global[j] > HiMaxConfirmed)
+        {
+        HiMaxConfirmed <- VSUMconfirmed_global[j] 
+        HiColNum <- j #saves the location by recording what row
+        }
+      }
+      #Nested IF statements serve to find which common low risk- 
+      #score value has the highest confirmed_global values.
+      else if(chkRiskScore == low_value)  
+     {     
+     if(VSUMconfirmed_global[j] < LoMaxConfirmed)
+        {
+        LoMaxConfirmed <- VSUMconfirmed_global[j] 
+        LoColNum <- j #saves the location by recording what row
+        }
+     }
+}
+#prints results
+cat("Global Risk Score:",mean(VSUMRiskScore),"\n\n")
+
+cat("Which area of the world currently has the lowest risk score\n")
+cat("(if more than one, display the one with the most confirmations)?\n")
+cat("Province/State:",deaths_global[LoColNum,1],"\n")
+cat("Country/Region:",deaths_global[LoColNum,2],"\n")
+cat("Lat:",deaths_global[LoColNum, 3],",Long:",deaths_global[LoColNum, 4],"\n")   
+cat("Lowest Risk Score:",VSUMRiskScore[LoColNum],"(w/ most confrimations:", LoColNum,")\n\n")
+
+
+cat("Which area of the world currently has the highest risk score\n")
+cat("(if more than one, display the one with the most confirmations)?\n")
+cat("Province/State:",deaths_global[HiColNum,1],"\n")  
+cat("Country/Region:",deaths_global[HiColNum,2],"\n")  
+
+cat("Lat:",deaths_global[HiColNum, 3],",Long:",deaths_global[HiColNum, 4],"\n")
+cat("Highest Risk Score:",VSUMRiskScore[HiColNum],"(w/ most confrimations:",HiColNum,")\n\n")
+
+
+```
+* ***ob4 Results*** 
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+  **>**
+    **Global Risk Score:** *2.895648 *
+    
+  **>**
+    **Which area of the world currently has the lowest risk score**
+    **-(if more than one, display the one with the most confirmations)?**
+    **Province/State:  ,**  **Country/Region:** *Antarctica*
+    **Lat:** *-71.9499* **,Long:** *23.347*
+    **Lowest Risk Score:** *0* **(w/ most confrimations:** *6* **)**
+    
+  **>**
+    **Which area of the world currently has the highest risk score**
+    **-(if more than one, display the one with the most confirmations)?**
+    **Province/State:**  **,Country/Region:** Korea**, North**
+    **Lat:** *40.3399* **,Long:** *127.5101*
+    **Highest Risk Score:** *600* **(w/ most confrimations:** *162* **)**
+    
+  **>**
+    **How do risk scores in these areas compare to global risk score?**
+    *The highest risk score is 207.2 times the amount of the global risk*
+    *-score while the lowest risk score is zero.*
+
+  **>**
+    **Why might it be helpful to calculate metrics like risk scores for different-**
+    **areas of the world and what would their limitations be?**
+    *It's important to see how much deviation in the risk score there is across the globe.*
+    *It can also put in perspective how off the risk scores of unique places like-* 
+    *Antarctica and North Korea compared to other surrounding countries*
+
+  **>**
+    **What assumptions does risk score make and what important variables might be left out?**
+    *In theory a population of a billion people could the same risk factor as a nation with 1000 people.*
+    *The risk score is a ratio that leaves out the critical detail of population size and density.*
+
+* ***ob4 end*** 
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+
+
+
+### Objective 5
+
+```{r ob5}
+#create empty vectors
+v_RecentConfirm <- c() #Will Hold all 289 entries of confirmed_global from (3/9/2023) 
+v_RecentDeath <- c() #Will Hold all 289 entries of deaths_global from (3/9/2023) 
+V_Bloc <- character() #Will Hold all 289 entries of the column 3, Country/Region
+
+#These new vectors hold the shorten data frame after consolidating common country data.
+#Will Hold the shortened qty of entries of the values.
+Final_comfirmed <- c()  #Will Hold all 289 entries of confirmed_global
+Final_deaths <- c() #Will Hold all 289 entries of the deaths_global
+Final_Bloc <- character() #Will Hold all 289 entries of the column 3, Country/Region
+
+#creates a data frame with country and either deaths_global, confirmed_global values.
+df_comfirmed <- c()
+df_deaths <- c()
+
+sumC <- 0 #resets confirmed_global Sum C after each country multiple
+sumD <- 0 #resets deaths_global Sum D after each country multiple
+jCntLength <- nrow(deaths_global)#289 number of rows
+iCntLength <- ncol(deaths_global)#1147 number of columns
+i <- iCntLength # postion of final column (3/9/2023)
+
+#For loop arrangement goes through an entire column and while loading data into vectors.
+for(j in 1:jCntLength) #Iterate through rows 1-289  
+  {
+    #deaths_global, confirmed_global tmp var
+    Ctot <- confirmed_global[j,i] #confirmed_global tmp var
+    Dtot <- deaths_global[j,i] #deaths_global tmp var
+    Bloc <- deaths_global[j,2] #country/region tmp var
+
+    #Populate vectors:
+    #adds Country, deaths_global, confirmed_global to new vectors
+    
+    #Will Hold all 289 entries of confirmed_global from (3/9/2023)
+    v_RecentConfirm <- c(v_RecentConfirm, Ctot) 
+    #Will Hold all 289 entries of deaths_global from (3/9/2023)
+    v_RecentDeath <- c(v_RecentDeath,Dtot) 
+    #Will Hold all 289 entries of countries from (3/9/2023)
+    V_Bloc <- c(V_Bloc, Bloc) #adds Country/Region to new vector
+  }
+
+#The following if else ladder sorts and filters the duplicate
+#-countries and combines the data for a common region.
+for(j in 1:jCntLength) #Iterate through rows 1-289  
+{
+  #first if conditional is need as the the first row will
+  #-not fall through the remaining if statements.
+  if(V_Bloc[j] == V_Bloc[1]) 
+    { 
+    #Adds the incremented value into each respective vector
+    Final_comfirmed <- c(Final_comfirmed, v_RecentConfirm[j])#adds confirmed_deaths
+    Final_deaths <- c(Final_deaths, v_RecentDeath[j]) #adds recent_deaths
+    Final_Bloc <- c(Final_Bloc, deaths_global[j,2]) #adds Country/Region
+    }
+  #The following (2) else if statements test and sort through duplicate country 
+  #-entries and then sums them together, respectively. 
+  else if(V_Bloc[j] %in% V_Bloc[j+1])#conditional for strings
+    {
+    #When a duplicate country entry is encountered values
+    #-are summed up for Confirmed and death cases
+    sumC <- sumC + v_RecentConfirm[j]
+    sumD <- sumD + v_RecentDeath[j]
+  }
+  #conditional statement for strings
+  else if((V_Bloc[j] %in% V_Bloc[j-1]) && (V_Bloc[j] != V_Bloc[j+1]))  
+    { 
+    #When a duplicate country entry is encountered values
+    #-are summed up for Confirmed and death cases
+    sumC <- sumC + v_RecentConfirm[j]
+    sumD <- sumD + v_RecentDeath[j]
+    
+    #loads the shorten results with the common countries combined
+    Final_comfirmed <- c(Final_comfirmed, v_RecentConfirm[j])
+    Final_deaths <- c(Final_deaths, v_RecentDeath[j]) 
+    Final_Bloc <- c(Final_Bloc, deaths_global[j,2])
+    
+    #resets the following sum variables to zero for the next duplicate country 
+    sumC <- 0
+    sumD <- 0
+    }
+  #The last else statement is where countries without duplicates are loaded
+  else
+   {
+    #adds deaths_global, confirmed_global to new vectors 
+    Final_comfirmed <- c(Final_comfirmed, v_RecentConfirm[j])
+    Final_deaths <- c(Final_deaths, v_RecentDeath[j]) 
+    Final_Bloc <- c(Final_Bloc, deaths_global[j,2]) #adds Country/Region to new vector
+   }
+}
+#creates and loads data frame with the shorten and consolidated vectors 
+df_comfirmed <- data.frame(Final_Bloc, Final_comfirmed)
+df_deaths <- data.frame(Final_Bloc, Final_deaths)
+#variable for new shorten length of data
+CRowCut <- nrow(df_comfirmed)  
+DRowCut <- nrow(df_deaths)  
+#Reorders the Data-frame in decreasing order
+df_C_decreasing <- df_comfirmed[order(df_comfirmed$Final_comfirmed, decreasing = TRUE),] 
+df_D_decreasing <- df_deaths[order(df_deaths$Final_deaths, decreasing = TRUE),]
+
+#this creates a variable needed to cut/delete unneeded rows past the top 5.
+Ctop5 <- df_C_decreasing[-(6:CRowCut),] #removes the rows starting at row 6.
+Dtop5 <- df_D_decreasing[-(6:DRowCut),] #removes the rows starting at row 6.
+```
+
+* ***ob5 Results*** 
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+
+
+```{r ob5 Tables}
+#creates table for "TOP 5: Recent Comfirmations & Deaths"
+knitr::kable(Ctop5, "pipe", col.name=c('Country/Region','comfirmed'),
+             caption = "TOP 5: Recent Comfirmations",align=c("r","c","c"))
+
+#creates table for "TOP 5: Recent Comfirmations & Deaths"
+knitr::kable(Dtop5, "pipe", col.name=c('Country/Region','Deaths'),
+             caption = "TOP 5: Recent Deaths",align=c("r","c","c"))
+```
+
+
+* ***ob5 end*** 
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+
+### GitHub Log
+```{bash gitlog} 
+git log --pretty=format:"%nSubject: %s%nAuthor: %aN%nDate: %aD%nBody: %b"
+```
+
+
+
+
+
